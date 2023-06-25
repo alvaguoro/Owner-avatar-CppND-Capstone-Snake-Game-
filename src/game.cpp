@@ -6,11 +6,12 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
       engine(dev()),
       random_w(0, static_cast<int>(grid_width - 1)),
-      random_h(0, static_cast<int>(grid_height - 1)) {
+      random_h(0, static_cast<int>(grid_height - 1)),
+      grid_width(grid_width), grid_height(grid_height) {
   PlaceFood();
 }
 
-void Game::Run(Controller const &controller, Renderer &renderer,
+void Game::Run(Controller &controller, Renderer &renderer,
                std::size_t target_frame_duration) {
   Uint32 title_timestamp = SDL_GetTicks();
   Uint32 frame_start;
@@ -19,11 +20,28 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   int frame_count = 0;
   bool running = true;
 
+  auto inputThread = std::thread(&Controller::CheckInputQueue, &controller, std::ref(snake));
+
   while (running) {
     frame_start = SDL_GetTicks();
 
     // Input, Update, Render - the main game loop.
-    controller.HandleInput(running, snake);
+    bool restart = controller.HandleInput(running, snake);
+
+    //controller.CheckInputQueue(snake);
+
+    if(restart)
+    {
+      snake = Snake(grid_width, grid_height);
+      PlaceFood();
+
+      if(score > maxScore)
+        maxScore = score;
+
+      score = 0;
+      
+    }
+
     Update();
     renderer.Render(snake, food);
 
@@ -36,7 +54,12 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 
     // After every second, update the window title.
     if (frame_end - title_timestamp >= 1000) {
-      renderer.UpdateWindowTitle(score, frame_count);
+
+      if(!snake.alive)
+        renderer.UpdateWindowTitle("Press Enter to create a new game.");
+      else
+        renderer.UpdateWindowTitle(score, maxScore, frame_count);
+
       frame_count = 0;
       title_timestamp = frame_end;
     }
@@ -48,6 +71,12 @@ void Game::Run(Controller const &controller, Renderer &renderer,
       SDL_Delay(target_frame_duration - frame_duration);
     }
   }
+
+  if(score > maxScore)
+        maxScore = score;
+
+  controller.StopInputThread();
+  inputThread.join();
 }
 
 void Game::PlaceFood() {
@@ -75,6 +104,10 @@ void Game::Update() {
 
   // Check if there's food over here
   if (food.x == new_x && food.y == new_y) {
+
+    if(score == maxScore)
+      maxScore++;
+
     score++;
     PlaceFood();
     // Grow snake and increase speed.

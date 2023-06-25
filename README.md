@@ -44,3 +44,34 @@ This work is licensed under a
 [cc-by-sa]: http://creativecommons.org/licenses/by-sa/4.0/
 [cc-by-sa-image]: https://licensebuttons.net/l/by-sa/4.0/88x31.png
 [cc-by-sa-shield]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
+
+## Instructions
+
+The game uses the arrow keys to be able to move the snake, as well as the Enter so when the snake dies we can restart the game.
+The maximum score of the user is stored and kept between sessions so it´s never lost.
+
+## Rubric
+
+### 1 The project reads data from a file and process the data, or the program writes data to a file.
+
+We store the maximum score achieved by the user in a .txt file that is read every time the program is opened, therefore keeping the maximum score.
+
+### 2 The project uses Object Oriented Programming techniques.
+
+We have created a class called ConcurrentQueue, this class is used to asure that we don´t run into race conditions when using the queues, encapsulating every lock so the developer does not need to see into this things.
+
+### 3 Templates generalize functions in the project.
+
+The class ConcurrentQueue uses templates so we can use this queue in a lot of situations.
+
+### 4 The project uses multithreading.
+
+We use a thread for the key inputs where we are constantly pulling from a queue where we store all the movements of the snake so no movement is lost.
+
+### 5 A mutex or lock is used in the project.
+
+We use mutex to protect the data in the queue and to wait for the queue to not be empty.
+
+### 6 A condition variable is used in the project.
+
+We use a condition variable to wait for the queue to have elements.
